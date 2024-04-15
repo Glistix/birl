@@ -1,16 +1,31 @@
-import gleam/int
-import gleam/list
+import birl/duration
+import birl/zones
 import gleam/bool
+import gleam/function
+import gleam/int
+import gleam/iterator
+import gleam/list
+import gleam/option
 import gleam/order
 import gleam/regex
-import gleam/string
-import gleam/option
 import gleam/result
-import gleam/iterator
-import gleam/function
-import birl/zones
-import birl/duration
+import gleam/string
 import ranger
+
+@target(erlang)
+const space_regex = "\\s"
+@target(erlang)
+const digit_regex = "\\d"
+
+@target(javascript)
+const space_regex = "\\s"
+@target(javascript)
+const digit_regex = "\\d"
+
+@target(nix)
+const space_regex = "[[:space:]]"
+@target(nix)
+const digit_regex = "[0-9]"
 
 pub opaque type Time {
   Time(
@@ -68,11 +83,11 @@ pub fn now() -> Time {
     now,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-        case list.any(zones.list, fn(item) { item.0 == tz }) {
-          True -> option.Some(tz)
-          False -> option.None
-        }
-      })
+      case list.any(zones.list, fn(item) { item.0 == tz }) {
+        True -> option.Some(tz)
+        False -> option.None
+      }
+    })
       |> option.flatten,
     option.Some(monotonic_now),
   )
@@ -263,31 +278,31 @@ pub fn to_iso8601(value: Time) -> String {
 }
 
 /// if you need to parse an `ISO8601` string, this is probably what you're looking for.
-/// 
+///
 /// given the huge surface area that `ISO8601` covers, it does not make sense for `birl`
 /// to support all of it in one function, so this function parses only strings for which both
 /// day and time of day can be extracted or deduced. Some acceptable examples are given below:
-/// 
+///
 ///   - `2019t14-4` -> `2019-01-01T14:00:00.000-04:00`
-/// 
+///
 ///   - `2019-03-26t14:00.9z` -> `2019-03-26T14:00:00.900Z`
-/// 
+///
 ///   - `2019-03-26+330` -> `2019-03-26T00:00:00.000+03:30`
-/// 
+///
 ///   - `20190326t1400-4` -> `2019-03-26T14:00:00.000-04:00`
-/// 
+///
 ///   - `19051222T16:38-3` -> `1905-12-22T16:38:00.000-03:00`
-/// 
+///
 ///   - `2019-03-26 14:30:00.9Z` -> `2019-03-26T14:30:00.900Z`
-/// 
+///
 ///   - `2019-03-26T14:00:00.9Z` -> `2019-03-26T14:00:00.900Z`
-/// 
+///
 ///   - `1905-12-22 16:38:23-3` -> `1905-12-22T16:38:23.000-03:00`
-/// 
+///
 ///   - `2019-03-26T14:00:00,4999Z` -> `2019-03-26T14:00:00.499Z`
-/// 
+///
 ///   - `1905-12-22T163823+0330` -> `1905-12-22T16:38:23.000+03:30`
-/// 
+///
 ///   - `1905-12-22T16:38:23.000+03:30` -> `1905-12-22T16:38:23.000+03:30`
 pub fn parse(value: String) -> Result(Time, Nil) {
   let assert Ok(offset_pattern) = regex.from_string("(.*)([+|\\-].*)")
@@ -300,7 +315,8 @@ pub fn parse(value: String) -> Result(Time, Nil) {
   {
     [day_string, time_string], _, _
     | _, [day_string, time_string], _
-    | _, _, [day_string, time_string] -> Ok(#(day_string, time_string))
+    | _, _, [day_string, time_string]
+    -> Ok(#(day_string, time_string))
     [_], [_], [_] -> Ok(#(value, "00"))
     _, _, _ -> Error(Nil)
   })
@@ -378,17 +394,17 @@ pub fn parse(value: String) -> Result(Time, Nil) {
 /// in the string. Some acceptable examples are given below:
 ///
 ///   - `t25z` -> `#(TimeOfDay(2, 5, 0, 0), "Z")`
-/// 
+///
 ///   - `14-4` -> `#(TimeOfDay(14, 0, 0, 0), "-04:00")`
-/// 
+///
 ///   - `T145+4` -> `#(TimeOfDay(14, 5, 0, 0), "+04:00")`
-/// 
+///
 ///   - `16:38-3` -> `#(TimeOfDay(16, 38, 0, 0), "-03:00")`
-/// 
+///
 ///   - `t14:65.9z` -> `#(TimeOfDay(14, 6, 5, 900), "-04:00")`
-/// 
+///
 ///   - `163823+0330` -> `#(TimeOfDay(16, 38, 23, 0), "+03:30")`
-/// 
+///
 ///   - `T16:38:23.050+03:30` -> `#(TimeOfDay(16, 38, 23, 50), "+03:30")`
 pub fn parse_time_of_day(value: String) -> Result(#(TimeOfDay, String), Nil) {
   let assert Ok(offset_pattern) = regex.from_string("(.*)([+|\\-].*)")
@@ -704,7 +720,7 @@ pub fn from_http(value: String) -> Result(Time, Nil) {
   )
 
   let rest = string.trim(rest)
-  let assert Ok(whitespace_pattern) = regex.from_string("\\s+")
+  let assert Ok(whitespace_pattern) = regex.from_string(space_regex <> "+")
   case regex.split(whitespace_pattern, rest) {
     [day_string, month_string, year_string, time_string, offset_string] -> {
       let time_string = string.replace(time_string, ":", "")
@@ -764,11 +780,11 @@ pub fn from_http(value: String) -> Result(Time, Nil) {
             int.parse(year_string),
             parse_time_section(time_string)
           {
-            Ok(day), Ok(#(month_index, _, _)), Ok(year), Ok([
-              hour,
-              minute,
-              second,
-            ]) ->
+            Ok(day),
+              Ok(#(month_index, _, _)),
+              Ok(year),
+              Ok([hour, minute, second])
+            ->
               case
                 from_parts(
                   #(year, month_index + 1, day),
@@ -855,7 +871,7 @@ const string_to_units = [
 ]
 
 /// you could say this is the opposite of `legible_difference`
-/// 
+///
 /// ```gleam
 /// > parse_relative(birl.now(), "8 minutes ago")
 /// ```
@@ -1183,11 +1199,11 @@ pub fn from_erlang_local_datetime(
     wall_time,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-        case list.any(zones.list, fn(item) { item.0 == tz }) {
-          True -> option.Some(tz)
-          False -> option.None
-        }
-      })
+      case list.any(zones.list, fn(item) { item.0 == tz }) {
+        True -> option.Some(tz)
+        False -> option.None
+      }
+    })
       |> option.flatten,
     option.None,
   )
@@ -1347,7 +1363,7 @@ fn parse_date_section(date: String) -> Result(List(Int), Nil) {
     True -> {
       let assert Ok(dash_pattern) =
         regex.from_string(
-          "(\\d{4})(?:-(1[0-2]|0?[0-9]))?(?:-(3[0-1]|[1-2][0-9]|0?[0-9]))?",
+          "(" <> digit_regex <> "{4})(-(1[0-2]|0?[0-9]))?(-(3[0-1]|[1-2][0-9]|0?[0-9]))?",
         )
 
       case regex.scan(dash_pattern, date) {
@@ -1357,18 +1373,18 @@ fn parse_date_section(date: String) -> Result(List(Int), Nil) {
           Ok(1),
         ]
 
-        [regex.Match(_, [option.Some(major), option.Some(middle)])] -> [
+        [regex.Match(_, [option.Some(major), _, option.Some(middle)])] -> [
           int.parse(major),
           int.parse(middle),
           Ok(1),
         ]
 
         [
-          regex.Match(
-            _,
-            [option.Some(major), option.Some(middle), option.Some(minor)],
-          ),
-        ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
+            regex.Match(
+              _,
+              [option.Some(major), _, option.Some(middle), _, option.Some(minor)],
+            ),
+          ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
 
         _ -> [Error(Nil)]
       }
@@ -1377,7 +1393,7 @@ fn parse_date_section(date: String) -> Result(List(Int), Nil) {
     False ->
       parse_section(
         date,
-        "(\\d{4})(1[0-2]|0?[0-9])?(3[0-1]|[1-2][0-9]|0?[0-9])?",
+        "(" <> digit_regex <> "{4})(1[0-2]|0?[0-9])?(3[0-1]|[1-2][0-9]|0?[0-9])?",
         1,
       )
   }
@@ -1440,11 +1456,11 @@ fn parse_section(
     ]
 
     [
-      regex.Match(
-        _,
-        [option.Some(major), option.Some(middle), option.Some(minor)],
-      ),
-    ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
+        regex.Match(
+          _,
+          [option.Some(major), option.Some(middle), option.Some(minor)],
+        ),
+      ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
 
     _ -> [Error(Nil)]
   }
@@ -1454,6 +1470,9 @@ fn parse_section(
 const weekdays = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
 
 @target(javascript)
+const weekdays = [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+
+@target(nix)
 const weekdays = [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
 
 const months = [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]
@@ -1485,28 +1504,167 @@ const month_strings = [
 
 @external(erlang, "birl_ffi", "now")
 @external(javascript, "./birl_ffi.mjs", "now")
+@external(nix, "./birl_ffi.nix", "now")
 fn ffi_now() -> Int
 
 @external(erlang, "birl_ffi", "local_offset")
 @external(javascript, "./birl_ffi.mjs", "local_offset")
+@external(nix, "./birl_ffi.nix", "local_offset")
 fn ffi_local_offset() -> Int
 
 @external(erlang, "birl_ffi", "monotonic_now")
 @external(javascript, "./birl_ffi.mjs", "monotonic_now")
+@external(nix, "./birl_ffi.nix", "monotonic_now")
 fn ffi_monotonic_now() -> Int
 
 @external(erlang, "birl_ffi", "to_parts")
 @external(javascript, "./birl_ffi.mjs", "to_parts")
-fn ffi_to_parts(a: Int, b: Int) -> #(#(Int, Int, Int), #(Int, Int, Int, Int))
+pub fn ffi_to_parts(
+  timestamp: Int,
+  offset: Int,
+) -> #(#(Int, Int, Int), #(Int, Int, Int, Int)) {
+  // fallback for Nix
+  let timestamp = timestamp + offset
+  // microseconds => days
+  let days = timestamp / { 1000 * 1000 * 3600 * 24 }
+
+  // From http://howardhinnant.github.io/date_algorithms.html (`civil_from_days`)
+  let #(year, month, date) = {
+    let days = days + 719_468
+    let era = case days >= 0 {
+      True -> days / 146_097
+      False -> { days - 146_096 } / 146_097
+    }
+    // [0, 146096]
+    let day_of_era = days - era * 146_097
+
+    // [0, 399]
+    let year_of_era =
+      {
+        day_of_era
+        - day_of_era
+        / 1460
+        + day_of_era
+        / 36_524
+        - day_of_era
+        / 146_096
+      }
+      / 365
+
+    let year = year_of_era + era * 400
+
+    // [0, 365]
+    let day_of_year =
+      day_of_era - { 365 * year_of_era + year_of_era / 4 - year_of_era / 100 }
+    // [0, 11]
+    let unconverted_month = { 5 * day_of_year + 2 } / 153
+    // [1, 31]
+    let date = day_of_year - { 153 * unconverted_month + 2 } / 5 + 1
+    // [1, 12]
+    let month = case unconverted_month < 10 {
+      True -> unconverted_month + 3
+      False -> unconverted_month - 9
+    }
+
+    let month_modifier = case month <= 2 {
+      True -> 1
+      False -> 0
+    }
+    let year = year + month_modifier
+
+    #(year, month, date)
+  }
+
+  let remaining_microseconds = timestamp - { days * 1000 * 1000 * 3600 * 24 }
+  let remaining_milliseconds = remaining_microseconds / 1000
+  let hours = remaining_milliseconds / { 1000 * 3600 }
+  let minutes = { remaining_milliseconds - hours * 1000 * 3600 } / { 1000 * 60 }
+  let seconds =
+    { remaining_milliseconds - hours * 1000 * 3600 - minutes * 1000 * 60 }
+    / 1000
+  let milliseconds =
+    remaining_milliseconds
+    - hours
+    * 1000
+    * 3600
+    - minutes
+    * 1000
+    * 60
+    - seconds
+    * 1000
+
+  #(#(year, month, date), #(hours, minutes, seconds, milliseconds))
+}
 
 @external(erlang, "birl_ffi", "from_parts")
 @external(javascript, "./birl_ffi.mjs", "from_parts")
-fn ffi_from_parts(a: #(#(Int, Int, Int), #(Int, Int, Int, Int)), b: Int) -> Int
+pub fn ffi_from_parts(
+  parts: #(#(Int, Int, Int), #(Int, Int, Int, Int)),
+  offset: Int,
+) -> Int {
+  // fallback for Nix
+  let #(#(year, month, day), #(hour, minute, second, milliseconds)) = parts
+
+  // From http://howardhinnant.github.io/date_algorithms.html (`days_from_civil`)
+  // Calculate the days since Jan 1, 1970
+  let days_from_civil = {
+    let year = case month <= 2 {
+      True -> year - 1
+      False -> year
+    }
+
+    // The civil calendar repeats itself every 400 years.
+    let era = case year >= 0 {
+      True -> year / 400
+      False -> { year - 399 } / 400
+    }
+
+    // [0, 399] (euclidean remainder)
+    let year_of_era = year - era * 400
+
+    // [0, 365]
+    let day_of_year = case month > 2 {
+      True -> { 153 * { month - 3 } + 2 } / 5 + day - 1
+      False -> { 153 * { month + 9 } + 2 } / 5 + day - 1
+    }
+
+    // [0, 146096]
+    let day_of_era =
+      year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year
+
+    // (year, month, day) => days since Jan 1, 1970
+    era * 146_097 + day_of_era - 719_468
+  }
+
+  // days since Jan 1, 1970 => seconds since Jan 1, 1970
+  let date_as_seconds = days_from_civil * 3600 * 24
+
+  // (hour, min, sec) => seconds
+  let converted_time = hour * 3600 + minute * 60 + second
+
+  // seconds since Jan 1, 1970
+  let converted_seconds = date_as_seconds + converted_time
+
+  // microseconds since Jan 1, 1970 - offset
+  { converted_seconds * 1000 + milliseconds } * 1000 - offset
+}
 
 @external(erlang, "birl_ffi", "weekday")
 @external(javascript, "./birl_ffi.mjs", "weekday")
-fn ffi_weekday(a: Int, b: Int) -> Int
+fn ffi_weekday(timestamp: Int, offset: Int) -> Int {
+  // fallback for Nix
+  let timestamp = timestamp + offset
+  let days = timestamp / { 1000 * 1000 * 3600 * 24 }
+
+  // From http://howardhinnant.github.io/date_algorithms.html#weekday_from_days
+  // [0, 6]
+  case days >= -4 {
+    True -> int.remainder(days + 4, 7) |> result.unwrap(or: 0)
+    False -> {int.remainder(days + 5, 7) |> result.unwrap(or: 0)} + 6
+  }
+}
 
 @external(erlang, "birl_ffi", "local_timezone")
 @external(javascript, "./birl_ffi.mjs", "local_timezone")
+@external(nix, "./birl_ffi.nix", "local_timezone")
 fn local_timezone() -> option.Option(String)
