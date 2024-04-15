@@ -1519,7 +1519,7 @@ fn ffi_monotonic_now() -> Int
 
 @external(erlang, "birl_ffi", "to_parts")
 @external(javascript, "./birl_ffi.mjs", "to_parts")
-pub fn ffi_to_parts(
+fn ffi_to_parts(
   timestamp: Int,
   offset: Int,
 ) -> #(#(Int, Int, Int), #(Int, Int, Int, Int)) {
@@ -1603,7 +1603,7 @@ pub fn ffi_to_parts(
 
 @external(erlang, "birl_ffi", "from_parts")
 @external(javascript, "./birl_ffi.mjs", "from_parts")
-pub fn ffi_from_parts(
+fn ffi_from_parts(
   parts: #(#(Int, Int, Int), #(Int, Int, Int, Int)),
   offset: Int,
 ) -> Int {
