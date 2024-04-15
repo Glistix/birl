@@ -1526,7 +1526,12 @@ pub fn ffi_to_parts(
   // fallback for Nix
   let timestamp = timestamp + offset
   // microseconds => days
-  let days = timestamp / { 1000 * 1000 * 3600 * 24 }
+  // (with adjustment to handle negative days)
+  let microseconds_per_day = 1000 * 1000 * 3600 * 24
+  let days = case timestamp >= 0 {
+    True -> timestamp / microseconds_per_day
+    False -> {timestamp - {microseconds_per_day - 1}} / microseconds_per_day
+  }
 
   // From http://howardhinnant.github.io/date_algorithms.html (`civil_from_days`)
   let #(year, month, date) = {
@@ -1575,7 +1580,7 @@ pub fn ffi_to_parts(
     #(year, month, date)
   }
 
-  let remaining_microseconds = timestamp - { days * 1000 * 1000 * 3600 * 24 }
+  let remaining_microseconds = timestamp - days * microseconds_per_day
   let remaining_milliseconds = remaining_microseconds / 1000
   let hours = remaining_milliseconds / { 1000 * 3600 }
   let minutes = { remaining_milliseconds - hours * 1000 * 3600 } / { 1000 * 60 }
