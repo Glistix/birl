@@ -1664,8 +1664,8 @@ fn ffi_weekday(timestamp: Int, offset: Int) -> Int {
   // From http://howardhinnant.github.io/date_algorithms.html#weekday_from_days
   // [0, 6]
   case days >= -4 {
-    True -> int.remainder(days + 4, 7) |> result.unwrap(or: 0)
-    False -> {int.remainder(days + 5, 7) |> result.unwrap(or: 0)} + 6
+    True -> {days + 4} % 7
+    False -> {days + 5} % 7 + 6
   }
 }
 
