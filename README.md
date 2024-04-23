@@ -5,25 +5,36 @@
 
 # birl
 
-Date/Time handling for gleam
+Glistix fork of [`birl`](https://github.com/massivefermion/birl), a Date/Time handling library for Gleam.
+
+Adds **support for the Nix target.**
+
+Its documentation can be found at <https://hexdocs.pm/birl>.
+
+## <img width=32 src="https://raw.githubusercontent.com/massivefermion/birl/main/icon.png"> Notes
+
+Due to purity constraints, **the Nix target cannot access the local timezone of the system.**
+However, **it can access the current time, but only outside pure-eval mode** (otherwise it's
+assumed to be Jan 1, 1970, or 0 in Unix time). Do note, however, that accessing the current time
+**can only be done once per evaluation** (later calls to `now()` always return the same result).
+
+Otherwise, the functions and algorithms should work just fine (just try not to depend on the
+current time).
 
 ## <img width=32 src="https://raw.githubusercontent.com/massivefermion/birl/main/icon.png"> Quick start
 
 ```sh
-gleam run   # Run the project
-gleam test  # Run the tests
-gleam shell # Run an Erlang shell
+nix develop   # Optional: Enter a shell with glistix
+glistix run   # Run the project
+glistix test  # Run the tests
 ```
 
 ## <img width=32 src="https://raw.githubusercontent.com/massivefermion/birl/main/icon.png"> Installation
 
-This package can be added to your Gleam project:
+Currently, you will need to **add this package as a local dependency to a Git submodule**
+in your project.
 
-```sh
-gleam add birl
-```
-
-and its documentation can be found at <https://hexdocs.pm/birl>.
+You can do so following steps similar to [`glistix/stdlib`](https://github.com/glistix/stdlib).
 
 ## <img width=32 src="https://raw.githubusercontent.com/massivefermion/birl/main/icon.png"> Usage
 
