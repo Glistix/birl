@@ -5,6 +5,8 @@
 
 # birl
 
+**Mirrors:** [**GitHub**](https://github.com/Glistix/birl) | [**Codeberg**](https://codeberg.org/Glistix/birl)
+
 Glistix fork of [`birl`](https://github.com/massivefermion/birl), a Date/Time handling library for Gleam.
 
 Adds **support for the Nix target.**
