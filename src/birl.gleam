@@ -14,16 +14,19 @@ import ranger
 
 @target(erlang)
 const space_regex = "\\s"
+
 @target(erlang)
 const digit_regex = "\\d"
 
 @target(javascript)
 const space_regex = "\\s"
+
 @target(javascript)
 const digit_regex = "\\d"
 
 @target(nix)
 const space_regex = "[[:space:]]"
+
 @target(nix)
 const digit_regex = "[0-9]"
 
@@ -566,7 +569,8 @@ pub fn from_naive(value: String) -> Result(Time, Nil) {
   {
     [day_string, time_string], _, _
     | _, [day_string, time_string], _
-    | _, _, [day_string, time_string] -> Ok(#(day_string, time_string))
+    | _, _, [day_string, time_string]
+    -> Ok(#(day_string, time_string))
     [_], [_], [_] -> Ok(#(value, "00"))
     _, _, _ -> Error(Nil)
   })
@@ -1363,7 +1367,9 @@ fn parse_date_section(date: String) -> Result(List(Int), Nil) {
     True -> {
       let assert Ok(dash_pattern) =
         regex.from_string(
-          "(" <> digit_regex <> "{4})(-(1[0-2]|0?[0-9]))?(-(3[0-1]|[1-2][0-9]|0?[0-9]))?",
+          "("
+          <> digit_regex
+          <> "{4})(-(1[0-2]|0?[0-9]))?(-(3[0-1]|[1-2][0-9]|0?[0-9]))?",
         )
 
       case regex.scan(dash_pattern, date) {
@@ -1380,11 +1386,11 @@ fn parse_date_section(date: String) -> Result(List(Int), Nil) {
         ]
 
         [
-            regex.Match(
-              _,
-              [option.Some(major), _, option.Some(middle), _, option.Some(minor)],
-            ),
-          ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
+          regex.Match(
+            _,
+            [option.Some(major), _, option.Some(middle), _, option.Some(minor)],
+          ),
+        ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
 
         _ -> [Error(Nil)]
       }
@@ -1393,7 +1399,9 @@ fn parse_date_section(date: String) -> Result(List(Int), Nil) {
     False ->
       parse_section(
         date,
-        "(" <> digit_regex <> "{4})(1[0-2]|0?[0-9])?(3[0-1]|[1-2][0-9]|0?[0-9])?",
+        "("
+          <> digit_regex
+          <> "{4})(1[0-2]|0?[0-9])?(3[0-1]|[1-2][0-9]|0?[0-9])?",
         1,
       )
   }
@@ -1456,11 +1464,11 @@ fn parse_section(
     ]
 
     [
-        regex.Match(
-          _,
-          [option.Some(major), option.Some(middle), option.Some(minor)],
-        ),
-      ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
+      regex.Match(
+        _,
+        [option.Some(major), option.Some(middle), option.Some(minor)],
+      ),
+    ] -> [int.parse(major), int.parse(middle), int.parse(minor)]
 
     _ -> [Error(Nil)]
   }
@@ -1530,7 +1538,7 @@ fn ffi_to_parts(
   let microseconds_per_day = 1000 * 1000 * 3600 * 24
   let days = case timestamp >= 0 {
     True -> timestamp / microseconds_per_day
-    False -> {timestamp - {microseconds_per_day - 1}} / microseconds_per_day
+    False -> { timestamp - { microseconds_per_day - 1 } } / microseconds_per_day
   }
 
   // From http://howardhinnant.github.io/date_algorithms.html (`civil_from_days`)
@@ -1664,8 +1672,8 @@ fn ffi_weekday(timestamp: Int, offset: Int) -> Int {
   // From http://howardhinnant.github.io/date_algorithms.html#weekday_from_days
   // [0, 6]
   case days >= -4 {
-    True -> {days + 4} % 7
-    False -> {days + 5} % 7 + 6
+    True -> { days + 4 } % 7
+    False -> { days + 5 } % 7 + 6
   }
 }
 
