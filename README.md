@@ -9,7 +9,7 @@
 
 Glistix fork of [`birl`](https://github.com/massivefermion/birl), a Date/Time handling library for Gleam.
 
-Adds **support for the Nix target.**
+Adds **support for the Nix target.** For that, implements the algorithms at [http://howardhinnant.github.io/date_algorithms.html](http://howardhinnant.github.io/date_algorithms.html).
 
 Its documentation can be found at <https://hexdocs.pm/birl>.
 
