@@ -1,15 +1,15 @@
-import birl/duration
-import birl/zones
-import gleam/bool
-import gleam/function
 import gleam/int
-import gleam/iterator
 import gleam/list
-import gleam/option
+import gleam/bool
 import gleam/order
 import gleam/regex
-import gleam/result
 import gleam/string
+import gleam/option
+import gleam/result
+import gleam/iterator
+import gleam/function
+import birl/zones
+import birl/duration
 import ranger
 
 @target(erlang)
@@ -86,11 +86,11 @@ pub fn now() -> Time {
     now,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-      case list.any(zones.list, fn(item) { item.0 == tz }) {
-        True -> option.Some(tz)
-        False -> option.None
-      }
-    })
+        case list.any(zones.list, fn(item) { item.0 == tz }) {
+          True -> option.Some(tz)
+          False -> option.None
+        }
+      })
       |> option.flatten,
     option.Some(monotonic_now),
   )
@@ -318,8 +318,7 @@ pub fn parse(value: String) -> Result(Time, Nil) {
   {
     [day_string, time_string], _, _
     | _, [day_string, time_string], _
-    | _, _, [day_string, time_string]
-    -> Ok(#(day_string, time_string))
+    | _, _, [day_string, time_string] -> Ok(#(day_string, time_string))
     [_], [_], [_] -> Ok(#(value, "00"))
     _, _, _ -> Error(Nil)
   })
@@ -569,8 +568,7 @@ pub fn from_naive(value: String) -> Result(Time, Nil) {
   {
     [day_string, time_string], _, _
     | _, [day_string, time_string], _
-    | _, _, [day_string, time_string]
-    -> Ok(#(day_string, time_string))
+    | _, _, [day_string, time_string] -> Ok(#(day_string, time_string))
     [_], [_], [_] -> Ok(#(value, "00"))
     _, _, _ -> Error(Nil)
   })
@@ -784,11 +782,11 @@ pub fn from_http(value: String) -> Result(Time, Nil) {
             int.parse(year_string),
             parse_time_section(time_string)
           {
-            Ok(day),
-              Ok(#(month_index, _, _)),
-              Ok(year),
-              Ok([hour, minute, second])
-            ->
+            Ok(day), Ok(#(month_index, _, _)), Ok(year), Ok([
+              hour,
+              minute,
+              second,
+            ]) ->
               case
                 from_parts(
                   #(year, month_index + 1, day),
@@ -1203,11 +1201,11 @@ pub fn from_erlang_local_datetime(
     wall_time,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-      case list.any(zones.list, fn(item) { item.0 == tz }) {
-        True -> option.Some(tz)
-        False -> option.None
-      }
-    })
+        case list.any(zones.list, fn(item) { item.0 == tz }) {
+          True -> option.Some(tz)
+          False -> option.None
+        }
+      })
       |> option.flatten,
     option.None,
   )
