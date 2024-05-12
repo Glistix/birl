@@ -1,15 +1,15 @@
-import birl/duration
-import birl/zones
-import gleam/bool
-import gleam/function
 import gleam/int
-import gleam/iterator
 import gleam/list
-import gleam/option
+import gleam/bool
 import gleam/order
 import gleam/regex
-import gleam/result
 import gleam/string
+import gleam/option
+import gleam/result
+import gleam/iterator
+import gleam/function
+import birl/zones
+import birl/duration
 import ranger
 
 @target(erlang)
@@ -86,11 +86,11 @@ pub fn now() -> Time {
     now,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-      case list.any(zones.list, fn(item) { item.0 == tz }) {
-        True -> option.Some(tz)
-        False -> option.None
-      }
-    })
+        case list.any(zones.list, fn(item) { item.0 == tz }) {
+          True -> option.Some(tz)
+          False -> option.None
+        }
+      })
       |> option.flatten,
     option.Some(monotonic_now),
   )
@@ -318,8 +318,7 @@ pub fn parse(value: String) -> Result(Time, Nil) {
   {
     [day_string, time_string], _, _
     | _, [day_string, time_string], _
-    | _, _, [day_string, time_string]
-    -> Ok(#(day_string, time_string))
+    | _, _, [day_string, time_string] -> Ok(#(day_string, time_string))
     [_], [_], [_] -> Ok(#(value, "00"))
     _, _, _ -> Error(Nil)
   })
@@ -569,8 +568,7 @@ pub fn from_naive(value: String) -> Result(Time, Nil) {
   {
     [day_string, time_string], _, _
     | _, [day_string, time_string], _
-    | _, _, [day_string, time_string]
-    -> Ok(#(day_string, time_string))
+    | _, _, [day_string, time_string] -> Ok(#(day_string, time_string))
     [_], [_], [_] -> Ok(#(value, "00"))
     _, _, _ -> Error(Nil)
   })
@@ -784,11 +782,11 @@ pub fn from_http(value: String) -> Result(Time, Nil) {
             int.parse(year_string),
             parse_time_section(time_string)
           {
-            Ok(day),
-              Ok(#(month_index, _, _)),
-              Ok(year),
-              Ok([hour, minute, second])
-            ->
+            Ok(day), Ok(#(month_index, _, _)), Ok(year), Ok([
+              hour,
+              minute,
+              second,
+            ]) ->
               case
                 from_parts(
                   #(year, month_index + 1, day),
@@ -1004,7 +1002,7 @@ pub fn subtract(value: Time, duration: duration.Duration) -> Time {
 pub fn weekday(value: Time) -> Weekday {
   case value {
     Time(wall_time: t, offset: o, timezone: _, monotonic_time: _) -> {
-      let assert Ok(weekday) = list.at(weekdays, ffi_weekday(t, o))
+      let assert Ok(weekday) = weekday_from_int(ffi_weekday(t, o))
       weekday
     }
   }
@@ -1036,7 +1034,7 @@ pub fn short_string_weekday(value: Time) -> String {
 
 pub fn month(value: Time) -> Month {
   let #(#(_, month, _), _, _) = to_parts(value)
-  let assert Ok(month) = list.at(months, month - 1)
+  let assert Ok(month) = month_from_int(month)
   month
 }
 
@@ -1203,11 +1201,11 @@ pub fn from_erlang_local_datetime(
     wall_time,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-      case list.any(zones.list, fn(item) { item.0 == tz }) {
-        True -> option.Some(tz)
-        False -> option.None
-      }
-    })
+        case list.any(zones.list, fn(item) { item.0 == tz }) {
+          True -> option.Some(tz)
+          False -> option.None
+        }
+      })
       |> option.flatten,
     option.None,
   )
@@ -1475,15 +1473,64 @@ fn parse_section(
 }
 
 @target(erlang)
-const weekdays = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+fn weekday_from_int(weekday: Int) -> Result(Weekday, Nil) {
+  case weekday {
+    0 -> Ok(Mon)
+    1 -> Ok(Tue)
+    2 -> Ok(Wed)
+    3 -> Ok(Thu)
+    4 -> Ok(Fri)
+    5 -> Ok(Sat)
+    6 -> Ok(Sun)
+    _ -> Error(Nil)
+  }
+}
 
 @target(javascript)
-const weekdays = [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+fn weekday_from_int(weekday: Int) -> Result(Weekday, Nil) {
+  case weekday {
+    0 -> Ok(Sun)
+    1 -> Ok(Mon)
+    2 -> Ok(Tue)
+    3 -> Ok(Wed)
+    4 -> Ok(Thu)
+    5 -> Ok(Fri)
+    6 -> Ok(Sat)
+    _ -> Error(Nil)
+  }
+}
 
 @target(nix)
-const weekdays = [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+fn weekday_from_int(weekday: Int) -> Result(Weekday, Nil) {
+  case weekday {
+    0 -> Ok(Sun)
+    1 -> Ok(Mon)
+    2 -> Ok(Tue)
+    3 -> Ok(Wed)
+    4 -> Ok(Thu)
+    5 -> Ok(Fri)
+    6 -> Ok(Sat)
+    _ -> Error(Nil)
+  }
+}
 
-const months = [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]
+fn month_from_int(month: Int) -> Result(Month, Nil) {
+  case month {
+    1 -> Ok(Jan)
+    2 -> Ok(Feb)
+    3 -> Ok(Mar)
+    4 -> Ok(Apr)
+    5 -> Ok(May)
+    6 -> Ok(Jun)
+    7 -> Ok(Jul)
+    8 -> Ok(Aug)
+    9 -> Ok(Sep)
+    10 -> Ok(Oct)
+    11 -> Ok(Nov)
+    12 -> Ok(Dec)
+    _ -> Error(Nil)
+  }
+}
 
 const weekday_strings = [
   #(Mon, #("Monday", "Mon")),
