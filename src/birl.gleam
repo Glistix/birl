@@ -1,15 +1,17 @@
-import gleam/int
-import gleam/list
 import gleam/bool
+import gleam/function
+import gleam/int
+import gleam/iterator
+import gleam/list
+import gleam/option
 import gleam/order
 import gleam/regex
-import gleam/string
-import gleam/option
 import gleam/result
-import gleam/iterator
-import gleam/function
-import birl/zones
+import gleam/string
+
 import birl/duration
+import birl/zones
+
 import ranger
 
 @target(erlang)
@@ -86,11 +88,11 @@ pub fn now() -> Time {
     now,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-        case list.any(zones.list, fn(item) { item.0 == tz }) {
-          True -> option.Some(tz)
-          False -> option.None
-        }
-      })
+      case list.any(zones.list, fn(item) { item.0 == tz }) {
+        True -> option.Some(tz)
+        False -> option.None
+      }
+    })
       |> option.flatten,
     option.Some(monotonic_now),
   )
@@ -598,11 +600,13 @@ pub fn from_naive(value: String) -> Result(Time, Nil) {
 
   let time_string = string.replace(time_string, ":", "")
   use #(time_string, milli_seconds_result) <- result.then(case
-    [string.split(time_string, "."), string.split(time_string, ",")]
+    string.split(time_string, "."),
+    string.split(time_string, ",")
   {
-    [[_], [_]] -> Ok(#(time_string, Ok(0)))
-    [[time_string, milli_seconds_string], [_]]
-    | [[_], [time_string, milli_seconds_string]] ->
+    [_], [_] -> Ok(#(time_string, Ok(0)))
+
+    [time_string, milli_seconds_string], [_]
+    | [_], [time_string, milli_seconds_string] ->
       Ok(#(
         time_string,
         milli_seconds_string
@@ -611,7 +615,7 @@ pub fn from_naive(value: String) -> Result(Time, Nil) {
           |> int.parse,
       ))
 
-    _ -> Error(Nil)
+    _, _ -> Error(Nil)
   })
 
   case milli_seconds_result {
@@ -802,11 +806,11 @@ pub fn from_http(value: String) -> Result(Time, Nil) {
             int.parse(year_string),
             parse_time_section(time_string)
           {
-            Ok(day), Ok(#(month_index, _, _)), Ok(year), Ok([
-              hour,
-              minute,
-              second,
-            ]) ->
+            Ok(day),
+              Ok(#(month_index, _, _)),
+              Ok(year),
+              Ok([hour, minute, second])
+            ->
               case
                 from_parts(
                   #(year, month_index + 1, day),
@@ -907,12 +911,8 @@ pub fn difference(a: Time, b: Time) -> duration.Duration {
 }
 
 const string_to_units = [
-  #("year", duration.Year),
-  #("month", duration.Month),
-  #("week", duration.Week),
-  #("day", duration.Day),
-  #("hour", duration.Hour),
-  #("minute", duration.Minute),
+  #("year", duration.Year), #("month", duration.Month), #("week", duration.Week),
+  #("day", duration.Day), #("hour", duration.Hour), #("minute", duration.Minute),
   #("second", duration.Second),
 ]
 
@@ -959,12 +959,8 @@ pub fn parse_relative(origin: Time, legible_difference: String) {
 }
 
 const units_to_string = [
-  #(duration.Year, "year"),
-  #(duration.Month, "month"),
-  #(duration.Week, "week"),
-  #(duration.Day, "day"),
-  #(duration.Hour, "hour"),
-  #(duration.Minute, "minute"),
+  #(duration.Year, "year"), #(duration.Month, "month"), #(duration.Week, "week"),
+  #(duration.Day, "day"), #(duration.Hour, "hour"), #(duration.Minute, "minute"),
   #(duration.Second, "second"),
 ]
 
@@ -1098,6 +1094,18 @@ pub fn parse_weekday(value: String) -> Result(Weekday, Nil) {
   |> result.map(fn(weekday) { weekday.0 })
 }
 
+pub fn parse_month(value: String) -> Result(Month, Nil) {
+  let lowercase = string.lowercase(value)
+  let month =
+    list.find(month_strings, fn(month_string) {
+      let #(_, #(long, short)) = month_string
+      lowercase == string.lowercase(short)
+      || lowercase == string.lowercase(long)
+    })
+  month
+  |> result.map(fn(month) { month.0 })
+}
+
 pub fn month(value: Time) -> Month {
   let #(#(_, month, _), _, _) = to_parts(value)
   let assert Ok(month) = month_from_int(month)
@@ -1167,6 +1175,7 @@ pub fn range(
   range
 }
 
+/// WARNING: Does not respect daylight saving time!
 pub fn set_timezone(value: Time, new_timezone: String) -> Result(Time, Nil) {
   case list.key_find(zones.list, new_timezone) {
     Ok(new_offset_number) -> {
@@ -1210,7 +1219,13 @@ pub fn set_day(value: Time, day: Day) -> Time {
   let #(_, time, offset) = to_parts(value)
   let Day(year, month, date) = day
   let assert Ok(new_value) = from_parts(#(year, month, date), time, offset)
-  new_value
+
+  Time(
+    new_value.wall_time,
+    new_value.offset,
+    value.timezone,
+    value.monotonic_time,
+  )
 }
 
 pub fn get_day(value: Time) -> Day {
@@ -1223,7 +1238,13 @@ pub fn set_time_of_day(value: Time, time: TimeOfDay) -> Time {
   let TimeOfDay(hour, minute, second, milli_second) = time
   let assert Ok(new_value) =
     from_parts(date, #(hour, minute, second, milli_second), offset)
-  new_value
+
+  Time(
+    new_value.wall_time,
+    new_value.offset,
+    value.timezone,
+    value.monotonic_time,
+  )
 }
 
 pub fn get_time_of_day(value: Time) -> TimeOfDay {
@@ -1267,11 +1288,11 @@ pub fn from_erlang_local_datetime(
     wall_time,
     offset_in_minutes * 60_000_000,
     option.map(timezone, fn(tz) {
-        case list.any(zones.list, fn(item) { item.0 == tz }) {
-          True -> option.Some(tz)
-          False -> option.None
-        }
-      })
+      case list.any(zones.list, fn(item) { item.0 == tz }) {
+        True -> option.Some(tz)
+        False -> option.None
+      }
+    })
       |> option.flatten,
     option.None,
   )
@@ -1599,28 +1620,18 @@ fn month_from_int(month: Int) -> Result(Month, Nil) {
 }
 
 const weekday_strings = [
-  #(Mon, #("Monday", "Mon")),
-  #(Tue, #("Tuesday", "Tue")),
-  #(Wed, #("Wednesday", "Wed")),
-  #(Thu, #("Thursday", "Thu")),
-  #(Fri, #("Friday", "Fri")),
-  #(Sat, #("Saturday", "Sat")),
+  #(Mon, #("Monday", "Mon")), #(Tue, #("Tuesday", "Tue")),
+  #(Wed, #("Wednesday", "Wed")), #(Thu, #("Thursday", "Thu")),
+  #(Fri, #("Friday", "Fri")), #(Sat, #("Saturday", "Sat")),
   #(Sun, #("Sunday", "Sun")),
 ]
 
 const month_strings = [
-  #(Jan, #("January", "Jan")),
-  #(Feb, #("February", "Feb")),
-  #(Mar, #("March", "Mar")),
-  #(Apr, #("April", "Apr")),
-  #(May, #("May", "May")),
-  #(Jun, #("June", "Jun")),
-  #(Jul, #("July", "Jul")),
-  #(Aug, #("August", "Aug")),
-  #(Sep, #("September", "Sep")),
-  #(Oct, #("October", "Oct")),
-  #(Nov, #("November", "Nov")),
-  #(Dec, #("December", "Dec")),
+  #(Jan, #("January", "Jan")), #(Feb, #("February", "Feb")),
+  #(Mar, #("March", "Mar")), #(Apr, #("April", "Apr")), #(May, #("May", "May")),
+  #(Jun, #("June", "Jun")), #(Jul, #("July", "Jul")), #(Aug, #("August", "Aug")),
+  #(Sep, #("September", "Sep")), #(Oct, #("October", "Oct")),
+  #(Nov, #("November", "Nov")), #(Dec, #("December", "Dec")),
 ]
 
 @external(erlang, "birl_ffi", "now")
