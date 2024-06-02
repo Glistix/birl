@@ -361,7 +361,8 @@ pub fn parse(value: String) -> Result(Time, Nil) {
       Ok(#(time_string, Ok(0)))
     }
     [time_string, milli_seconds_string], [_]
-    | [_], [time_string, milli_seconds_string] -> {
+    | [_], [time_string, milli_seconds_string]
+    -> {
       Ok(#(
         time_string,
         milli_seconds_string
@@ -445,7 +446,8 @@ pub fn parse_time_of_day(value: String) -> Result(#(TimeOfDay, String), Nil) {
       Ok(#(time_string, Ok(0)))
     }
     [time_string, milli_seconds_string], [_]
-    | [_], [time_string, milli_seconds_string] -> {
+    | [_], [time_string, milli_seconds_string]
+    -> {
       Ok(#(
         time_string,
         milli_seconds_string
@@ -493,7 +495,8 @@ pub fn parse_naive_time_of_day(
       Ok(#(time_string, Ok(0)))
     }
     [time_string, milli_seconds_string], [_]
-    | [_], [time_string, milli_seconds_string] -> {
+    | [_], [time_string, milli_seconds_string]
+    -> {
       Ok(#(
         time_string,
         milli_seconds_string
@@ -608,7 +611,8 @@ pub fn from_naive(value: String) -> Result(Time, Nil) {
     [_], [_] -> Ok(#(time_string, Ok(0)))
 
     [time_string, milli_seconds_string], [_]
-    | [_], [time_string, milli_seconds_string] ->
+    | [_], [time_string, milli_seconds_string]
+    ->
       Ok(#(
         time_string,
         milli_seconds_string
@@ -913,12 +917,8 @@ pub fn difference(a: Time, b: Time) -> duration.Duration {
 }
 
 const string_to_units = [
-  #("year", duration.Year),
-  #("month", duration.Month),
-  #("week", duration.Week),
-  #("day", duration.Day),
-  #("hour", duration.Hour),
-  #("minute", duration.Minute),
+  #("year", duration.Year), #("month", duration.Month), #("week", duration.Week),
+  #("day", duration.Day), #("hour", duration.Hour), #("minute", duration.Minute),
   #("second", duration.Second),
 ]
 
@@ -965,12 +965,8 @@ pub fn parse_relative(origin: Time, legible_difference: String) {
 }
 
 const units_to_string = [
-  #(duration.Year, "year"),
-  #(duration.Month, "month"),
-  #(duration.Week, "week"),
-  #(duration.Day, "day"),
-  #(duration.Hour, "hour"),
-  #(duration.Minute, "minute"),
+  #(duration.Year, "year"), #(duration.Month, "month"), #(duration.Week, "week"),
+  #(duration.Day, "day"), #(duration.Hour, "hour"), #(duration.Minute, "minute"),
   #(duration.Second, "second"),
 ]
 
@@ -1630,28 +1626,18 @@ fn month_from_int(month: Int) -> Result(Month, Nil) {
 }
 
 const weekday_strings = [
-  #(Mon, #("Monday", "Mon")),
-  #(Tue, #("Tuesday", "Tue")),
-  #(Wed, #("Wednesday", "Wed")),
-  #(Thu, #("Thursday", "Thu")),
-  #(Fri, #("Friday", "Fri")),
-  #(Sat, #("Saturday", "Sat")),
+  #(Mon, #("Monday", "Mon")), #(Tue, #("Tuesday", "Tue")),
+  #(Wed, #("Wednesday", "Wed")), #(Thu, #("Thursday", "Thu")),
+  #(Fri, #("Friday", "Fri")), #(Sat, #("Saturday", "Sat")),
   #(Sun, #("Sunday", "Sun")),
 ]
 
 const month_strings = [
-  #(Jan, #("January", "Jan")),
-  #(Feb, #("February", "Feb")),
-  #(Mar, #("March", "Mar")),
-  #(Apr, #("April", "Apr")),
-  #(May, #("May", "May")),
-  #(Jun, #("June", "Jun")),
-  #(Jul, #("July", "Jul")),
-  #(Aug, #("August", "Aug")),
-  #(Sep, #("September", "Sep")),
-  #(Oct, #("October", "Oct")),
-  #(Nov, #("November", "Nov")),
-  #(Dec, #("December", "Dec")),
+  #(Jan, #("January", "Jan")), #(Feb, #("February", "Feb")),
+  #(Mar, #("March", "Mar")), #(Apr, #("April", "Apr")), #(May, #("May", "May")),
+  #(Jun, #("June", "Jun")), #(Jul, #("July", "Jul")), #(Aug, #("August", "Aug")),
+  #(Sep, #("September", "Sep")), #(Oct, #("October", "Oct")),
+  #(Nov, #("November", "Nov")), #(Dec, #("December", "Dec")),
 ]
 
 @external(erlang, "birl_ffi", "now")

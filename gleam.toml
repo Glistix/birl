@@ -1,5 +1,5 @@
 name = "birl"
-version = "1.7.0"
+version = "1.7.1"
 description = "Glistix fork of birl, a Date / Time handling library"
 gleam = ">= 0.32.0"
 internal_modules = ["birl/zones"]
