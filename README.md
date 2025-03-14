@@ -1,7 +1,7 @@
-![birl](https://raw.githubusercontent.com/massivefermion/birl/main/banner.png)
+![birl](https://raw.githubusercontent.com/glistix/birl/main/banner.png)
 
-[![Package Version](https://img.shields.io/hexpm/v/birl)](https://hex.pm/packages/birl)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/birl/)
+[![Package Version](https://img.shields.io/hexpm/v/glistix_birl)](https://hex.pm/packages/glistix_birl)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glistix_birl/)
 [![Nix-compatible](https://img.shields.io/badge/target-nix-5277C3)](https://github.com/glistix/glistix)
 
 # birl
