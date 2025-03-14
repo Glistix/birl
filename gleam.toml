@@ -5,7 +5,7 @@ gleam = ">= 0.32.0"
 internal_modules = ["birl/zones"]
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "glistix", repo = "birl" }
-links = [{ title = "Gleam", href = "https://gleam.run" }]
+links = [{ title = "Glistix", href = "https://github.com/glistix/glistix" }]
 
 [dependencies]
 ranger = ">= 1.2.0 and < 1.4.0"
