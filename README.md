@@ -4,7 +4,7 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glistix_birl/)
 [![Nix-compatible](https://img.shields.io/badge/target-nix-5277C3)](https://github.com/glistix/glistix)
 
-# birl
+# glistix-birl
 
 **Mirrors:** [**GitHub**](https://github.com/Glistix/birl) | [**Codeberg**](https://codeberg.org/Glistix/birl)
 
@@ -13,6 +13,10 @@
 Adds **support for the Nix target.** For that, implements the algorithms at [http://howardhinnant.github.io/date_algorithms.html](http://howardhinnant.github.io/date_algorithms.html).
 
 Its documentation can be found at <https://hexdocs.pm/glistix_birl>.
+
+> [!WARNING]
+>
+> **Disclaimer:** This is an **unofficial** fork of `birl` and we are not affiliated with its authors. If you are not using Glistix with the Nix target, consider using the original [`birl`](https://hex.pm/packages/birl) package directly instead.
 
 ## <img width=32 src="https://raw.githubusercontent.com/massivefermion/birl/main/icon.png"> Notes
 
