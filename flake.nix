@@ -21,19 +21,11 @@
     };
 
     # Pick your Glistix version here.
-    glistix.url = "github:glistix/glistix/v0.3.0";
-
-    # Submodules
-    # Add any submodules which you use as dependencies here,
-    # and then add them to "submodules = [ ... ]" below.
-    stdlib = {
-      url = "github:glistix/stdlib";
-      flake = false;
-    };
+    glistix.url = "github:glistix/glistix/8615d81304bbb1707b1d561b3a47ee15722b97fb";
   };
 
   outputs =
-    inputs@{ self, nixpkgs, flake-parts, systems, glistix, stdlib, ... }:
+    inputs@{ self, nixpkgs, flake-parts, systems, glistix, ... }:
     let
       # --- CUSTOMIZATION PARAMETERS ---
 
@@ -54,12 +46,7 @@
       # Submodules have to be specified here, even if they are cloned locally.
       # Add them as inputs to the flake, and then specify where to clone them to
       # during build below.
-      submodules = [
-        {
-          src = stdlib;
-          dest = "external/stdlib";
-        }
-      ];
+      submodules = [];
 
       # If you cache your build output, this will specify the path
       # 'loadGlistixPackage' will check to find compiled Nix files in by default.
